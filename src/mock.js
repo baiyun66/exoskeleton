@@ -1,6 +1,14 @@
 import Mock from 'mockjs'
 //import data from './data.json'
 
+const Random = Mock.Random
+Random.extend({
+  treatmentType: function(date) {
+    const treatmentType = ['脑电康复','机械康复']
+    return this.pick(treatmentType)
+  }
+})
+
 Mock.mock('http://localhost:8080/getUserList', {
   code: 0, data:
     {
@@ -47,7 +55,39 @@ Mock.mock(/getUserInfo\?id=[0-9]+/i, {
           avatar() {
             //用户头像
             return Mock.Random.image('100×100', Mock.Random.color(), '#757575', 'png', this.nickName)
-          }
+          },
+// /^20[012]\d\/((0[1-9])|(1[0-2]))\/[1-30]$/
+          desserts() {
+            return Mock.mock({
+              'list|1-50': [{
+                'id|+1': 1,
+                'treatmentType': '@treatmentType',
+                'startTime': '@date',
+                'totalTime': /^\d{3}$/,
+                'effect': /^[好坏]$/,
+              }]
+            })
+          },
+
+
         }
+    }
+})
+
+
+Mock.mock(/detail\/\?page=[0-9]+&size=[0-9]+/, {
+  code: 0, data:
+    {
+      'length':333,
+      'data|10': [
+        {
+          // 'id|+1': 1,
+          'id' :'@id',
+          'treatmentType': '@treatmentType',
+          'startTime': '@date',
+          'totalTime': /^\d{3}$/,
+          'effect': /^[好坏]$/,
+        }
+      ]
     }
 })

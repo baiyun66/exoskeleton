@@ -14,11 +14,29 @@
             ></v-progress-linear>
           </template>
           <div style="text-align: center" class="pa-5">
+            <v-hover v-slot="{ hover }">
             <v-img class="pa-7 secondary rounded-circle d-inline-block"
                    height="200"
                    width="200"
+
+
                    src="https://cdn.vuetifyjs.com/images/cards/cooking.png"
-            ></v-img>
+            >
+              <v-overlay
+                :absolute="absolute"
+                :value="hover"
+              >
+                <div>
+                <v-icon
+                @click="dialogFile=!dialogFile"
+                >
+                  mdi-camera
+                </v-icon>
+                </div>
+                <span class="justify-center">更改</span>
+              </v-overlay>
+            </v-img>
+            </v-hover>
           </div>
           <template>
             <form class="pa-6">
@@ -78,14 +96,13 @@
                 </v-col>
               </v-row>
 
-                <v-text-field
-                  v-model="address"
-                  label="address"
-                  required
-                  @input="$v.address.$touch()"
-                  @blur="$v.address.$touch()"
-                ></v-text-field>
-
+              <v-text-field
+                v-model="address"
+                label="address"
+                required
+                @input="$v.address.$touch()"
+                @blur="$v.address.$touch()"
+              ></v-text-field>
 
 
               <v-row>
@@ -168,12 +185,233 @@
           </div>
         </template>
         <template>
+          <!--            :options.sync="options"-->
+<!--                      :server-items-length="totalDesserts"-->
           <v-data-table
+            v-model="selected"
+            :single-select="singleSelect"
+            show-select
+
             :headers="headers"
             :items="desserts"
-            :items-per-page="10"
+            item-key="id"
+
             class="elevation-1"
-          ></v-data-table>
+            hide-default-footer
+            :page.sync="page"
+            :items-per-page="itemsPerPage"
+            @page-count="pageCount = $event"
+
+
+            :loading="TFRLoading"
+          >
+            <template v-slot:top>
+              <v-toolbar flat>
+
+                <v-col class="col-4 pl-0">
+                  <v-switch
+                    v-model="singleSelect"
+                    label="Single select"
+                    hide-details
+                  ></v-switch>
+                </v-col>
+                <v-col class="col-4 offset-4">
+                  <v-row>
+                    <v-col class="col-3 offset-6">
+                      <v-btn
+                        @click="deleteSelected"
+                        color="red"
+                      >删除
+                      </v-btn>
+                    </v-col>
+                    <v-col class="col-3">
+                      <v-btn
+                        @click="addTFRecord"
+                        class="primary"
+                      >新增
+                      </v-btn>
+                    </v-col>
+
+                  </v-row>
+
+                </v-col>
+
+                <v-dialog v-model="dialogDelete" max-width="500px">
+                  <v-card>
+                    <v-card-title class="headline">确认删除{{ selected.length }}条信息？</v-card-title>
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn color="blue darken-1" text @click="dialogDelete = !dialogDelete">取消</v-btn>
+                      <v-btn color="blue darken-1" text @click="deleteItemConfirm">确认</v-btn>
+                      <v-spacer></v-spacer>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+                <v-dialog v-model="dialogTFRecord" max-width="500px">
+                  <v-card>
+                    <v-card-title>
+                      <span class="headline">{{ formTitle }}</span>
+                    </v-card-title>
+                    <v-card-text>
+                      <v-container>
+                        <v-row>
+                          <v-col
+                            cols="12"
+                            sm="6"
+                            md="4"
+                          >
+                            <v-text-field
+                              v-model="editedItem.id"
+                              label="id"
+                              disabled
+                            ></v-text-field>
+                          </v-col>
+                          <v-col
+                            cols="12"
+                            sm="6"
+                            md="4"
+                          >
+                            <v-text-field
+                              v-model="editedItem.treatmentType"
+                              label="treatmentType"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col
+                            cols="12"
+                            sm="6"
+                            md="4"
+                          >
+                            <v-text-field
+                              v-model="editedItem.startTime"
+                              label="startTime"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col
+                            cols="12"
+                            sm="6"
+                            md="4"
+                          >
+                            <v-text-field
+                              v-model="editedItem.totalTime"
+                              label="totalTime"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col
+                            cols="12"
+                            sm="6"
+                            md="4"
+                          >
+                            <v-text-field
+                              v-model="editedItem.effect"
+                              label="effect"
+                            ></v-text-field>
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                    </v-card-text>
+
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn
+                        color="blue darken-1"
+                        text
+                        @click="dialogAdd=dialogEdit=false"
+                      >
+                        取消
+                      </v-btn>
+                      <v-btn
+                        color="blue darken-1"
+                        text
+                        @click="saveTRecord"
+                      >
+                        保存
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+
+                <v-dialog v-model="dialogFile" max-width="500px">
+                  <v-card>
+                    <v-card-title class="headline">上传图片</v-card-title>
+                    <v-card-text >
+                      <div v-show="!up_image" class="text-center" style=" border: 1px solid #000;height: 200px;"
+                         >
+                        <v-file-input
+                          :rules="fileRules"
+                          hide-input
+                          prepend-icon="mdi-cloud-upload"
+                          accept="image/png, image/jpeg, image/bmp"
+                          class="v-icon pa-md-16"
+                          x-large
+                          :value="head_image"
+                        ></v-file-input>
+
+                      </div>
+                      <div
+                        v-show="up_image" class="text-center" style="border: 1px solid #000;">
+
+                      <v-img
+
+                        class="pa-7 secondary rounded-circle d-inline-block"
+                             height="200"
+                             width="200"
+
+
+                             src="https://cdn.vuetifyjs.com/images/cards/cooking.png"
+                      ></v-img>
+                      </div>
+                      <div>
+                        <small class="v-banner--single-line">上传图片文件:jpeg,png,bmp;</small>
+                      </div>
+                      <div>
+                        <small>大小为200*200像素;<500kb</small>
+                      </div>
+
+
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+
+                      <v-btn color="blue darken-1" text @click="dialogFile = !dialogFile">取消</v-btn>
+                      <v-btn color="blue darken-1" text @click="fileConfirm">确认</v-btn>
+                      <v-spacer></v-spacer>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+
+
+              </v-toolbar>
+            </template>
+            <template v-slot:item.actions="{ item }">
+              <v-btn
+                color="blue"
+                small
+                @click="editItem(item)"
+              >
+                编辑
+              </v-btn>
+            </template>
+          </v-data-table>
+          <v-row class="text-center pt-2">
+            <v-text-field
+              class="col-4 pl-8"
+              :value="itemsPerPage"
+              label="个数"
+              type="number"
+              min="-1"
+              max="15"
+              style="max-width: 100px"
+              @input="itemsPerPage = parseInt($event, 10)"
+            ></v-text-field>
+
+            <v-pagination
+              class="col-6 offset-2"
+              v-model="page"
+              :length="pageCount"
+              total-visible="5"
+            ></v-pagination>
+
+          </v-row>
         </template>
 
       </v-col>
@@ -183,7 +421,7 @@
 </template>
 
 <script>
-import {getUserInfo} from '../../api/'
+import {getUserInfo, deleteTreatmentRecord,addTreatmentRecord,updateTreatmentRecord,getTRecordsByPage} from '../../api/'
 import {validationMixin} from 'vuelidate'
 import {required, maxLength, email, between, numeric} from 'vuelidate/lib/validators'
 
@@ -201,24 +439,57 @@ export default {
     height: {between: between(150, 200)},
     thigh_len: {required, between: between(30, 80)},
     shank_len: {required, between: between(30, 80)},
-    phoneNumber: {numeric}
+    phoneNumber: {numeric},
 
   },
 
   data: () => ({
-    // person:{
-    //   name:"小明",
-    //   height:180,
-    //   thigh_len:50,
-    //   shank_len:50,
-    //   age:30,
-    //   up_site:1,
-    //   down_site:1,
-    // },
+    absolute: true,
+    overlay: false,
+
+    up_image:false,
+    head_image:{},
+
+    page: 1,
+    pageCount: 0,
+    itemsPerPage: 10,
+    dialogDelete: false,
+    dialogAdd: false,
+    dialogEdit: false,
+    dialogFile:false,
+    singleSelect: false,
+    editedIndex: -1,
+    selected: [],
+
+    totalDesserts: 0,
+    TFRLoading: true,
+    options: {},
+
+
+    editedItem: {
+      id: '',//随机id
+      treatmentType: '',//随机名称
+      startTime: '',//随机昵称
+      totalTime: 0,//随机电话号码
+      effect: '',//随机地址
+    },
+    oriTFRecordItem: {
+      id: '',//随机id
+      treatmentType: '',//随机名称
+      startTime: '',//随机昵称
+      totalTime: 0,//随机电话号码
+      effect: '',//随机地址
+    },
 
     loading: false,
     selection: 1,
     headers: [
+      {
+        text: 'id',
+        align: 'start',
+        sortable: false,
+        value: 'id',
+      },
       {
         text: '治疗类型',
         align: 'start',
@@ -228,115 +499,11 @@ export default {
       {text: '使用时间', value: 'startTime'},
       {text: '使用时长', value: 'totalTime'},
       {text: '效果', value: 'effect'},
-    ],
+      {text: 'Actions', value: 'actions', sortable: false},
 
-    desserts: [
-      {
-        'treatmentType': '脑电康复',
-        'startTime': '2020/12/13',
-        'totalTime': '162',
-        'effect': '差'
-      }, {'treatmentType': '机械康复', 'startTime': '2021/2/9', 'totalTime': '227', 'effect': '好'}, {
-        'treatmentType': '机械康复',
-        'startTime': '2021/2/4',
-        'totalTime': '72',
-        'effect': '差'
-      }, {'treatmentType': '脑电康复', 'startTime': '2019/6/3', 'totalTime': '41', 'effect': '好'}, {
-        'treatmentType': '脑电康复',
-        'startTime': '2021/1/4',
-        'totalTime': '62',
-        'effect': '差'
-      }, {'treatmentType': '机械康复', 'startTime': '2020/7/26', 'totalTime': '179', 'effect': '好'}, {
-        'treatmentType': '机械康复',
-        'startTime': '2019/8/7',
-        'totalTime': '187',
-        'effect': '差'
-      }, {'treatmentType': '机械康复', 'startTime': '2018/4/4', 'totalTime': '266', 'effect': '中'}, {
-        'treatmentType': '脑电康复',
-        'startTime': '2019/10/6',
-        'totalTime': '77',
-        'effect': '中'
-      }, {'treatmentType': '机械康复', 'startTime': '2019/1/16', 'totalTime': '95', 'effect': '好'}, {
-        'treatmentType': '机械康复',
-        'startTime': '2021/3/23',
-        'totalTime': '48',
-        'effect': '好'
-      }, {'treatmentType': '脑电康复', 'startTime': '2019/1/5', 'totalTime': '149', 'effect': '中'}, {
-        'treatmentType': '脑电康复',
-        'startTime': '2020/9/24',
-        'totalTime': '130',
-        'effect': '差'
-      }, {'treatmentType': '机械康复', 'startTime': '2020/4/13', 'totalTime': '85', 'effect': '中'}, {
-        'treatmentType': '脑电康复',
-        'startTime': '2021/2/25',
-        'totalTime': '41',
-        'effect': '差'
-      }, {'treatmentType': '机械康复', 'startTime': '2018/7/24', 'totalTime': '233', 'effect': '差'}, {
-        'treatmentType': '脑电康复',
-        'startTime': '2019/2/21',
-        'totalTime': '251',
-        'effect': '差'
-      }, {'treatmentType': '脑电康复', 'startTime': '2021/1/1', 'totalTime': '122', 'effect': '中'}, {
-        'treatmentType': '脑电康复',
-        'startTime': '2021/9/1',
-        'totalTime': '174',
-        'effect': '好'
-      }, {'treatmentType': '脑电康复', 'startTime': '2021/8/6', 'totalTime': '261', 'effect': '差'}, {
-        'treatmentType': '机械康复',
-        'startTime': '2018/6/26',
-        'totalTime': '50',
-        'effect': '中'
-      }, {'treatmentType': '机械康复', 'startTime': '2018/5/6', 'totalTime': '199', 'effect': '中'}, {
-        'treatmentType': '机械康复',
-        'startTime': '2018/9/3',
-        'totalTime': '83',
-        'effect': '中'
-      }, {'treatmentType': '脑电康复', 'startTime': '2020/3/13', 'totalTime': '57', 'effect': '差'}, {
-        'treatmentType': '机械康复',
-        'startTime': '2021/9/27',
-        'totalTime': '179',
-        'effect': '好'
-      }, {'treatmentType': '机械康复', 'startTime': '2018/7/23', 'totalTime': '279', 'effect': '好'}, {
-        'treatmentType': '机械康复',
-        'startTime': '2018/3/5',
-        'totalTime': '217',
-        'effect': '中'
-      }, {
-        'treatmentType': '机械康复',
-        'startTime': '2018/10/19',
-        'totalTime': '119',
-        'effect': '好'
-      }, {'treatmentType': '机械康复', 'startTime': '2018/12/1', 'totalTime': '20', 'effect': '差'}, {
-        'treatmentType': '机械康复',
-        'startTime': '2020/3/10',
-        'totalTime': '32',
-        'effect': '差'
-      }, {'treatmentType': '脑电康复', 'startTime': '2019/2/16', 'totalTime': '237', 'effect': '差'}, {
-        'treatmentType': '脑电康复',
-        'startTime': '2020/11/28',
-        'totalTime': '106',
-        'effect': '中'
-      }, {'treatmentType': '机械康复', 'startTime': '2018/8/2', 'totalTime': '114', 'effect': '中'}, {
-        'treatmentType': '机械康复',
-        'startTime': '2021/11/24',
-        'totalTime': '204',
-        'effect': '好'
-      }, {'treatmentType': '机械康复', 'startTime': '2018/7/7', 'totalTime': '132', 'effect': '好'}, {
-        'treatmentType': '脑电康复',
-        'startTime': '2018/2/4',
-        'totalTime': '203',
-        'effect': '差'
-      }, {'treatmentType': '机械康复', 'startTime': '2021/7/22', 'totalTime': '65', 'effect': '好'}, {
-        'treatmentType': '脑电康复',
-        'startTime': '2020/4/10',
-        'totalTime': '10',
-        'effect': '差'
-      }, {'treatmentType': '脑电康复', 'startTime': '2018/8/18', 'totalTime': '18', 'effect': '差'}, {
-        'treatmentType': '机械康复',
-        'startTime': '2019/12/26',
-        'totalTime': '91',
-        'effect': '差'
-      }],
+    ],
+    desserts: [],
+
 
     name: '',
     sex: '',
@@ -351,6 +518,10 @@ export default {
     email: '',
     select: null,
     checkbox: false,
+
+    fileRules: [
+      value => !value || value.size < 200000 || 'Avatar size should be less than 2 MB!',
+    ],
   }),
   computed: {
     shank_len_Errors () {
@@ -408,21 +579,34 @@ export default {
       if (!this.$v.phoneNumber.$dirty) return errors
       !this.$v.phoneNumber.numeric && errors.push('Must be number')
       return errors
+    },
+    formTitle () {
+      if (this.dialogEdit) {
+        return '编辑'
+      }
+      if (this.dialogAdd) {
+        return '新增'
+      }
+    },
+    dialogTFRecord(){
+      return this.dialogEdit||this.dialogAdd
     }
   },
 
   methods: {
+    fileConfirm(){
+      this.dialogFile = false
+
+    },
     async getMockList () {
       try {
         const result = await getUserInfo(this.$route.params.id)
-        console.log(result)
-
+        console.log('getMockList',result)
         if (result.code === 0) {
           const person_ = result.data.data
-          console.log(person_)
-
+          // console.log(person_.desserts.list)
           this.name = person_.name
-          this.sex = person_.sex ? '男':'女'
+          this.sex = person_.sex ? '男' : '女'
           this.height = person_.height
           this.thigh_len = person_.thigh_len
           this.shank_len = person_.shank_len
@@ -432,8 +616,7 @@ export default {
           this.down_site = person_.down_site
           this.phoneNumber = person_.phoneNumber
           this.email = person_.email
-
-          // this.desserts = result.data.data
+          // this.desserts = person_.desserts.list
         }
       } catch (error) {
         console.log(error)
@@ -455,10 +638,108 @@ export default {
       this.select = null
       this.checkbox = false
     },
+    closeDelete () {
+      this.dialogDelete = false
+    },
+    async deleteItemConfirm () {
+      const idList = []
+      for (let i = 0; i < this.selected.length; i++) {
+        idList.push(this.selected[i].id)
+      }
+      console.log('idList',idList)
+      try {
+        const result = await deleteTreatmentRecord(idList)
+        // console.log(result)
+        if (result.code === 0) {
+          console.log('删除成功')
+        }
+      } catch (error) {
+        console.log(error)
+      }
+      this.closeDelete()
+    },
+    deleteSelected () {
+      console.log('selected',this.selected)
+      this.dialogDelete = true
+    },
+    async saveTRecord () {
+      // console.log(this.editedItem)
+      if (this.dialogAdd) {
+        try {
+          const result = await addTreatmentRecord(this.editedItem)
+          console.log(result)
+          if (result.code === 0) {
+            console.log('新增了一条数据')
+          }
+        } catch (error) {
+          console.log(error)
+        }
+        this.dialogAdd = false
+      }
+      if (this.dialogEdit) {
+        console.log('编辑了一条数据')
+        try {
+          const result = await updateTreatmentRecord(this.editedItem)
+          // console.log(result)
+          if (result.code === 0) {
+            console.log('新增了一条数据')
+          }
+        } catch (error) {
+          console.log(error)
+        }
+        this.dialogEdit = false
+      }
+    },
+    editItem(item){
+      // console.log(item)
+      this.dialogEdit = true
+      this.editedItem = item
+
+    },
+    addTFRecord(){
+      this.dialogAdd=true
+      this.editedItem = this.oriTFRecordItem
+    },
+    async getDataFromApi () {
+      this.TFRLoading = true
+      try {
+        const result = await getTRecordsByPage(this.page,this.itemsPerPage)
+        console.log("getDataFromApi",result)
+        if (result.code === 0) {
+          this.desserts = result.data.data
+          this.pageCount = Math.ceil(Number(result.data.length)/this.itemsPerPage)
+          this.TFRLoading = false
+          console.log('更新列表:', this.pageCount , this.TFRLoading)
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    },
+
   },
   created () {
     this.getMockList()
+    this.getDataFromApi()
   },
-
+  watch: {
+    dialogDelete (val) {
+      val || this.closeDelete()
+    },
+    page(val){
+      console.log("页码变化了")
+      this.getDataFromApi()
+    },
+    itemsPerPage(val){
+      console.log("大小变化了",this.itemsPerPage)
+      this.getDataFromApi()
+    },
+    head_image(val){
+      console.log("图片的内容变化了",this.head_image)
+    }
+  },
+  mounted () {
+    this.getDataFromApi()
+  }
 }
 </script>
+
