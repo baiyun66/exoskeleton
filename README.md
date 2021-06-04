@@ -1,6 +1,6 @@
 # y
 
-> frontend of django
+> frontend of exoskeleton
 
 ## Build Setup
 
