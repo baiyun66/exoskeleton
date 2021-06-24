@@ -3,8 +3,8 @@
 函数的返回值: promise对象
  */
 import ajax from './ajax'
-const BASE_URL = 'http://localhost:8080'
-
+// let BASE_URL = 'http://localhost:8080'
+let BASE_URL = '/api/basic'
 
 
 
@@ -16,6 +16,7 @@ export const getUserInfo = (id) => ajax(BASE_URL+'/getUserInfo',{id})
 
 /*************userList***************/
 /*************基础信息页面***************/
+// BASE_URL += '/basic'
 //1. 获取一页的信息
 export const getInfoByPage = (page,size,info) => ajax(BASE_URL+'/',{page,size,info})
 //2.添加一条新数据
@@ -30,7 +31,7 @@ export const importDate = (info) => ajax(BASE_URL+'/import',{info},'POST')
 
 /*************userinfo***************/
 /*************详细信息页面***************/
-
+export const getDInfoByUid = ()=>ajax(BASE_URL+'/detail/',{},'GET')
 //1.添加详细信息
 export const addDInfo = (dInfo) => ajax(BASE_URL+'/detail/',{dInfo},'POST')
 //2.更新一条详细信息
@@ -38,12 +39,12 @@ export const updateDInfo = (dInfo) => ajax(BASE_URL+'/detail/',{dInfo},'PUT')
 //3.依据id删除一条详细信息
 export const deleteDInfo = (id) => ajax(BASE_URL+'/detail/',{id},'DELETE')
 //4.获取一页治疗记录
-export const getTRecordsByPage = (page,size) => ajax(BASE_URL+'/detail/',{page,size})
+export const getTRecordsByPage = (page,size,info) => ajax(BASE_URL+'/detail/',{page,size,info})
 //3.添加治疗记录
-export const addTreatmentRecord = (tRecord) => ajax(BASE_URL+'/detail/addTRecord',{tRecord},'POST')
+export const addTreatmentRecord = (tRecord) => ajax(BASE_URL+'/detail/addTRecord',tRecord,'POST')
 //4.依据id删除一条治疗记录
-export const deleteTreatmentRecord = (id) => ajax(BASE_URL+'/detail/deleteTRecord/',{id},'DELETE')
+export const deleteTreatmentRecord = (id) => ajax(BASE_URL+'/detail/deleteTRecord/',id,'DELETE')
 //5.更新（修改）一条治疗记录
-export const updateTreatmentRecord = (tRecord) => ajax(BASE_URL+'/detail/updateTRecord',{tRecord},'PUT')
+export const updateTreatmentRecord = (tRecord) => ajax(BASE_URL+'/detail/updateTRecord',tRecord,'PUT')
 
 

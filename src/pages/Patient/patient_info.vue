@@ -200,11 +200,9 @@
             hide-default-footer
             :page.sync="page"
             :items-per-page="itemsPerPage"
-            @page-count="pageCount = $event"
-
-
             :loading="TFRLoading"
           >
+<!--            @page-count="pageCount = $event"-->
             <template v-slot:top>
               <v-toolbar flat>
 
@@ -398,7 +396,7 @@
               :value="itemsPerPage"
               label="个数"
               type="number"
-              min="-1"
+              min="1"
               max="15"
               style="max-width: 100px"
               @input="itemsPerPage = parseInt($event, 10)"
@@ -424,6 +422,7 @@
 import {getUserInfo, deleteTreatmentRecord,addTreatmentRecord,updateTreatmentRecord,getTRecordsByPage} from '../../api/'
 import {validationMixin} from 'vuelidate'
 import {required, maxLength, email, between, numeric} from 'vuelidate/lib/validators'
+import axios from 'axios'
 
 export default {
   mixins: [validationMixin],
@@ -598,10 +597,12 @@ export default {
       this.dialogFile = false
 
     },
-    async getMockList () {
+    async getDInfoByUid () {
       try {
-        const result = await getUserInfo(this.$route.params.id)
-        console.log('getMockList',result)
+        // const result = await getDInfoByUid(this.$route.params.id)
+
+        const result = (await axios.get('/api/basic/detail/' + String(this.$route.params.id))).data
+        console.log('getDInfoByUid',result)
         if (result.code === 0) {
           const person_ = result.data.data
           // console.log(person_.desserts.list)
@@ -646,10 +647,10 @@ export default {
       for (let i = 0; i < this.selected.length; i++) {
         idList.push(this.selected[i].id)
       }
-      console.log('idList',idList)
+      console.log('idList',idList,idList.constructor===Array)
       try {
-        const result = await deleteTreatmentRecord(idList)
-        // console.log(result)
+        const result = await deleteTreatmentRecord(idList[0])
+        console.log(result)
         if (result.code === 0) {
           console.log('删除成功')
         }
@@ -661,6 +662,7 @@ export default {
     deleteSelected () {
       console.log('selected',this.selected)
       this.dialogDelete = true
+
     },
     async saveTRecord () {
       // console.log(this.editedItem)
@@ -680,10 +682,10 @@ export default {
         console.log('编辑了一条数据')
         try {
           const result = await updateTreatmentRecord(this.editedItem)
-          // console.log(result)
-          if (result.code === 0) {
-            console.log('新增了一条数据')
-          }
+          console.log(result)
+          // if (result.code === 0) {
+          //   console.log('新增了一条数据')
+          // }
         } catch (error) {
           console.log(error)
         }
@@ -700,14 +702,14 @@ export default {
       this.dialogAdd=true
       this.editedItem = this.oriTFRecordItem
     },
-    async getDataFromApi () {
+    async setRecordsByPage_ () {
       this.TFRLoading = true
       try {
         const result = await getTRecordsByPage(this.page,this.itemsPerPage)
         console.log("getDataFromApi",result)
-        if (result.code === 0) {
-          this.desserts = result.data.data
-          this.pageCount = Math.ceil(Number(result.data.length)/this.itemsPerPage)
+        if (result.total >= 0) {
+          this.desserts = result.data
+          this.pageCount = Math.ceil(Number(result.total)/this.itemsPerPage)
           this.TFRLoading = false
           console.log('更新列表:', this.pageCount , this.TFRLoading)
         }
@@ -718,8 +720,8 @@ export default {
 
   },
   created () {
-    this.getMockList()
-    this.getDataFromApi()
+    this.getDInfoByUid()
+    this.setRecordsByPage_()
   },
   watch: {
     dialogDelete (val) {
@@ -727,18 +729,18 @@ export default {
     },
     page(val){
       console.log("页码变化了")
-      this.getDataFromApi()
+      this.setRecordsByPage_()
     },
     itemsPerPage(val){
-      console.log("大小变化了",this.itemsPerPage)
-      this.getDataFromApi()
+      console.log("大小变化了")
+      this.setRecordsByPage_()
     },
     head_image(val){
       console.log("图片的内容变化了",this.head_image)
     }
   },
   mounted () {
-    this.getDataFromApi()
+    // this.setRecordsByPage_()
   }
 }
 </script>

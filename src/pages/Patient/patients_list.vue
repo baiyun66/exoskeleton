@@ -235,7 +235,7 @@
 
 
 <script>
-import {getUserList} from '../../api/'
+import {getUserList,getInfoByPage,addInfo,deleteInfoByName,updateInfo,importDate} from '../../api/'
 
 export default {
   data: () => ({
@@ -251,12 +251,13 @@ export default {
         value: 'id',
       },
       {text: 'name', value: 'name'},
-      {text: 'nickName', value: 'nickName'},
-      {text: 'phone', value: 'phone'},
-      {text: 'address ', value: 'address'},
-      {text: 'email ', value: 'email'},
-      {text: 'isMale ', value: 'isMale'},
-      {text: 'createTime ', value: 'createTime'},
+      {text: 'age', value: 'age'},
+      {text: 'gender', value: 'gender'},
+      {text: 'isPatient ', value: 'isPatient'},
+      {text: 'legLength ', value: 'legLength'},
+      {text: 'crotchWidth ', value: 'crotchWidth'},
+      {text: 'height ', value: 'height'},
+      {text: 'weight ', value: 'weight'},
       {text: 'Actions', value: 'actions', sortable: false},
     ],
     desserts: [],
@@ -264,22 +265,26 @@ export default {
     editedItem: {
       id: '',//随机id
       name: '',//随机名称
-      nickName: '',//随机昵称
-      phone: 0,//随机电话号码
-      address: '',//随机地址
-      email: '',//随机邮箱
-      isMale: '',//随机性别
-      createTime: '',//创建时间
+      age: '',//随机昵称
+      crotchWidth: 0,//随机电话号码
+      gender: '',//随机地址
+      height: '',//随机邮箱
+      isPatient: '',//随机性别
+      legLength: '',//创建时间
+      type:'',
+      weight:'',
     },
     defaultItem: {
       id: '',//随机id
       name: '',//随机名称
-      nickName: '',//随机昵称
-      phone: 0,//随机电话号码
-      address: '',//随机地址
-      email: '',//随机邮箱
-      isMale: '',//随机性别
-      createTime: '',//创建时间
+      age: '',//随机昵称
+      crotchWidth: 0,//随机电话号码
+      gender: '',//随机地址
+      height: '',//随机邮箱
+      isPatient: '',//随机性别
+      legLength: '',//创建时间
+      type:'',
+      weight:'',
     },
     search_info: {
         valid: false,
@@ -315,11 +320,29 @@ export default {
   },
 
   methods: {
+    // 获取病人分页列表
     async getMockList () {
       try {
-        const result = await getUserList()
-        if (result.code === 0) {
-          this.desserts = result.data.data
+        // const result = await getUserList()
+        const result = await getInfoByPage(1,10)
+
+        if (result.total > 0) {
+          this.desserts = result.data
+          console.log(this.desserts)
+          for(var i = 0;i<this.desserts.length;i++){
+            if(this.desserts[i].weight===null)
+            {
+              this.desserts[i].weight = '/'
+            }
+
+            if(this.desserts[i].isPatient===0)
+            {
+              this.desserts[i].isPatient = '否'
+            }else {
+              this.desserts[i].isPatient = '是'
+            }
+          }
+
         }
       } catch (error) {
         console.log(error)

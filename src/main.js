@@ -4,7 +4,7 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 import vuetify from './plug-in/vuetify'
-import './mock'
+// import './mock'
 Vue.config.productionTip = false
 
 // require('./mock.js')
