@@ -18,7 +18,7 @@
     size="64"
   ></v-avatar>
 
-  <div>john@vuetifyjs.com</div>
+  <div>管理员</div>
 </v-sheet>
 
 <v-divider></v-divider>
@@ -62,7 +62,7 @@
         <v-list-item-title>脑电采集</v-list-item-title>
       </v-list-item-content>
     </v-list-item>
-    <v-list-item @click="">
+    <v-list-item @click="toExoskeletonControl">
       <v-list-item-icon>
         <v-icon v-text="icons.mdiDoctor"></v-icon>
       </v-list-item-icon>
@@ -123,7 +123,10 @@ export default {
     },
     toEegAssistant:function (){
       this.$router.replace('/eeg_assistant')
-    }
+    },
+    toExoskeletonControl:function (){
+      this.$router.replace('/ExoskeletonControl')
+    },
   }
 }
 </script>

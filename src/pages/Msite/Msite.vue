@@ -95,7 +95,7 @@
             class="mx-auto"
             max-width="344"
           >
-            <img :src = "signalIconSrc['3']" style=" height:200px" @click="">
+            <img :src = "signalIconSrc['3']" style=" height:200px" @click="toExoskeletonControl">
 
             <v-card-title>
               Exoskeleton control
@@ -159,7 +159,10 @@ export default {
   },
     toEegAssistant:function (){
       this.$router.replace('/eeg_assistant')
-    }
+    },
+    toExoskeletonControl:function (){
+      this.$router.replace('/ExoskeletonControl')
+    },
   }
 }
 </script>

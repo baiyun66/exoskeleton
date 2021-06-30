@@ -48,8 +48,7 @@
                     :counter="20"
                     label="Name"
                     required
-                    @input="$v.name.$touch()"
-                    @blur="$v.name.$touch()"
+
                   ></v-text-field>
                 </v-col>
                 <v-col>
@@ -57,8 +56,7 @@
                     v-model="age"
                     label="age"
                     required
-                    @input="$v.age.$touch()"
-                    @blur="$v.age.$touch()"
+
                   ></v-text-field>
                 </v-col>
                 <v-col>
@@ -67,8 +65,14 @@
 
                     label="sex"
                     required
-                    @input="$v.sex.$touch()"
-                    @blur="$v.sex.$touch()"
+
+                  ></v-text-field>
+                </v-col>
+                <v-col>
+                  <v-text-field
+                    v-model="isPatient"
+                    label="身份"
+
                   ></v-text-field>
                 </v-col>
 
@@ -80,29 +84,29 @@
                     :error-messages="phoneNumberErrors"
                     label="phoneNumber"
                     required
-                    @input="$v.phoneNumber.$touch()"
-                    @blur="$v.phoneNumber.$touch()"
+
                   ></v-text-field>
                 </v-col>
+
                 <v-col>
                   <v-text-field
-                    v-model="email"
-                    :error-messages="emailErrors"
-                    label="E-mail"
+                    v-model="address"
+                    label="address"
                     required
-                    @input="$v.email.$touch()"
-                    @blur="$v.email.$touch()"
+
                   ></v-text-field>
+
+                  <!--                  <v-text-field-->
+<!--                    v-model="email"-->
+<!--                    :error-messages="emailErrors"-->
+<!--                    label="E-mail"-->
+<!--                    required-->
+<!--                    @input="$v.email.$touch()"-->
+<!--                    @blur="$v.email.$touch()"-->
+<!--                  ></v-text-field>-->
                 </v-col>
               </v-row>
 
-              <v-text-field
-                v-model="address"
-                label="address"
-                required
-                @input="$v.address.$touch()"
-                @blur="$v.address.$touch()"
-              ></v-text-field>
 
 
               <v-row>
@@ -110,31 +114,37 @@
                   <v-text-field
                     v-model="height"
                     :error-messages="height_Errors"
-                    label="身高"
+                    label="身高/cm"
                     required
-                    @input="$v.height.$touch()"
-                    @blur="$v.height.$touch()"
+
                   ></v-text-field>
                 </v-col>
                 <v-col>
                   <v-text-field
-                    v-model="thigh_len"
-                    :error-messages="thigh_len_Errors"
-                    label="大腿长"
+                    v-model="legLength"
+                    :error-messages="legLength_Errors"
+                    label="腿长/cm"
                     required
-                    @input="$v.thigh_len.$touch()"
-                    @blur="$v.thigh_len.$touch()"
+
                   ></v-text-field>
 
                 </v-col>
                 <v-col>
                   <v-text-field
-                    v-model="shank_len"
-                    :error-messages="shank_len_Errors"
-                    label="小腿长"
+                    v-model="weight"
+                    :error-messages="weight_Errors"
+                    label="体重/kg"
                     required
-                    @input="$v.shank_len.$touch()"
-                    @blur="$v.shank_len.$touch()"
+
+                  ></v-text-field>
+
+                </v-col>
+                <v-col>
+                  <v-text-field
+                    v-model="crotchWidth"
+                    label="腰宽/cm"
+                    required
+
                   ></v-text-field>
 
                 </v-col>
@@ -148,24 +158,26 @@
 
                 </v-col>
               </v-row>
-              <v-checkbox
-                v-model="checkbox"
-                :error-messages="checkboxErrors"
-                label="Do you agree?"
-                required
-                @change="$v.checkbox.$touch()"
-                @blur="$v.checkbox.$touch()"
-              ></v-checkbox>
-
+<!--              <v-checkbox-->
+<!--                v-model="checkbox"-->
+<!--                :error-messages="checkboxErrors"-->
+<!--                label="Do you agree?"-->
+<!--                required-->
+<!--                @change="$v.checkbox.$touch()"-->
+<!--                @blur="$v.checkbox.$touch()"-->
+<!--              ></v-checkbox>-->
+              <v-row justify="center">
               <v-btn
+                color="green"
                 class="mr-4"
                 @click="submit"
               >
-                submit
+                提交
               </v-btn>
-              <v-btn @click="clear">
-                clear
+              <v-btn @click="reset" color="blue">
+                刷新
               </v-btn>
+              </v-row>
             </form>
           </template>
 
@@ -419,7 +431,15 @@
 </template>
 
 <script>
-import {getUserInfo, deleteTreatmentRecord,addTreatmentRecord,updateTreatmentRecord,getTRecordsByPage} from '../../api/'
+import {
+  updateInfo,
+  getDInfoByUid,
+  deleteTreatmentRecord,
+  addTreatmentRecord,
+  updateTreatmentRecord,
+  getTRecordsByPage,
+  updateDInfo
+} from '../../api/'
 import {validationMixin} from 'vuelidate'
 import {required, maxLength, email, between, numeric} from 'vuelidate/lib/validators'
 import axios from 'axios'
@@ -428,7 +448,7 @@ export default {
   mixins: [validationMixin],
   validations: {
     name: {required, maxLength: maxLength(20)},
-    email: {required, email},
+    // email: {required, email},
     select: {required},
     checkbox: {
       checked (val) {
@@ -436,8 +456,8 @@ export default {
       },
     },
     height: {between: between(150, 200)},
-    thigh_len: {required, between: between(30, 80)},
-    shank_len: {required, between: between(30, 80)},
+    legLength: {required, between: between(50, 130)},
+    weight: {required, between: between(30, 100)},
     phoneNumber: {numeric},
 
   },
@@ -503,17 +523,20 @@ export default {
     ],
     desserts: [],
 
-
+    //个人详细信息
     name: '',
     sex: '',
     height: 180,
-    thigh_len: 50,
-    shank_len: 50,
+    legLength: 50,
+    isPatient:0,
+    weight: 50,
     age: null,
     address: '',
     up_site: 1,
     down_site: 1,
     phoneNumber: '',
+    crotchWidth:'',
+    regist_data:'',
     email: '',
     select: null,
     checkbox: false,
@@ -523,26 +546,26 @@ export default {
     ],
   }),
   computed: {
-    shank_len_Errors () {
+    weight_Errors () {
       const errors = []
-      if (!this.$v.shank_len.$dirty) return errors
-      !this.$v.shank_len.between && errors.push('Name must be < 100 and >30')
-      !this.$v.shank_len.required && errors.push('Name is required.')
+      if (!this.$v.weight.$dirty) return errors
+      !this.$v.weight.between && errors.push('Name must be < 100 and >30')
+      !this.$v.weight.required && errors.push('Name is required.')
       return errors
 
     },
     height_Errors () {
       const errors = []
       if (!this.$v.height.$dirty) return errors
-      !this.$v.shank_len.between && errors.push('Name must be < 200 and >150')
+      !this.$v.weight.between && errors.push('Name must be < 200 and >150')
       return errors
 
     },
-    thigh_len_Errors () {
+    legLength_Errors () {
       const errors = []
-      if (!this.$v.thigh_len.$dirty) return errors
-      !this.$v.thigh_len.between && errors.push('Name must be < 100 and >30')
-      !this.$v.thigh_len.required && errors.push('Name is required.')
+      if (!this.$v.legLength.$dirty) return errors
+      !this.$v.legLength.between && errors.push('Name must be < 100 and >30')
+      !this.$v.legLength.required && errors.push('Name is required.')
 
       return errors
 
@@ -599,26 +622,29 @@ export default {
     },
     async getDInfoByUid () {
       try {
-        // const result = await getDInfoByUid(this.$route.params.id)
+        const result = await getDInfoByUid(this.$route.params.id)
 
-        const result = (await axios.get('/api/basic/detail/' + String(this.$route.params.id))).data
+        // const result = (await axios.get('/api/basic/detail/' + String(this.$route.params.id))).data
         console.log('getDInfoByUid',result)
-        if (result.code === 0) {
-          const person_ = result.data.data
+        // if (result.code === 0) {
+          const person_ = result
           // console.log(person_.desserts.list)
           this.name = person_.name
-          this.sex = person_.sex ? '男' : '女'
+          this.sex = person_.sex!=="male" ? '男' : '女'
           this.height = person_.height
-          this.thigh_len = person_.thigh_len
-          this.shank_len = person_.shank_len
+          this.legLength = person_.legLength
+          this.weight = person_.weight
           this.age = person_.age
           this.address = person_.address
           this.up_site = person_.up_site
           this.down_site = person_.down_site
-          this.phoneNumber = person_.phoneNumber
+          this.phoneNumber = person_.number
           this.email = person_.email
+        this.crotchWidth = person_.crotchWidth
+        this.isPatient = person_.isPatient ? "病人":"正常人"
+        this.regist_data = person_.date
           // this.desserts = person_.desserts.list
-        }
+        // }
       } catch (error) {
         console.log(error)
       }
@@ -628,16 +654,38 @@ export default {
 
       setTimeout(() => (this.loading = false), 2000)
     },
-    submit () {
-      console.log(this.$v)
-      this.$v.$touch()
+    async submit () {
+      var dinfo = {
+        id:parseInt(this.$route.params.id),
+        // uid:parseInt(this.$route.params.id),
+        name: this.name,
+        gender:this.sex==="男" ? "male":"female" ,
+        height:this.height,
+        legLength:this.legLength,
+        weight:this.weight,
+        age:this.age,
+        type:0,
+        address:this.address,
+        number:this.phoneNumber,
+        crotchWidth:this.crotchWidth,
+        isPatient:this.isPatient==="病人"?1:0,
+        date:this.regist_data,
+      }
+      try {
+        const result = await updateDInfo(dinfo)
+        const result1 = await updateInfo(dinfo)
+        console.log(result,result1)
+      }catch (error){
+        console.log(error)
+      }
+
+
+
     },
-    clear () {
-      this.$v.$reset()
-      this.name = ''
-      this.email = ''
-      this.select = null
-      this.checkbox = false
+    reset () {
+      this.getDInfoByUid()
+
+      // this.$v.$reset()
     },
     closeDelete () {
       this.dialogDelete = false
@@ -651,8 +699,10 @@ export default {
       try {
         const result = await deleteTreatmentRecord(idList[0])
         console.log(result)
-        if (result.code === 0) {
+        if (result.msg === "删除成功！") {
           console.log('删除成功')
+          alert("删除成功")
+          await this.setRecordsByPage_()
         }
       } catch (error) {
         console.log(error)
@@ -668,10 +718,12 @@ export default {
       // console.log(this.editedItem)
       if (this.dialogAdd) {
         try {
+          this.editedItem['uid'] = this.$route.params.id
           const result = await addTreatmentRecord(this.editedItem)
           console.log(result)
-          if (result.code === 0) {
-            console.log('新增了一条数据')
+          if (result.msg === '添加成功！') {
+            await this.setRecordsByPage_()
+            alert('新增了一条数据')
           }
         } catch (error) {
           console.log(error)
@@ -705,7 +757,7 @@ export default {
     async setRecordsByPage_ () {
       this.TFRLoading = true
       try {
-        const result = await getTRecordsByPage(this.page,this.itemsPerPage)
+        const result = await getTRecordsByPage(this.page,this.itemsPerPage,null,this.$route.params.id)
         console.log("getDataFromApi",result)
         if (result.total >= 0) {
           this.desserts = result.data

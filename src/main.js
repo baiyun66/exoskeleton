@@ -4,6 +4,9 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 import vuetify from './plug-in/vuetify'
+// import echarts from 'echarts'
+import myecharts from './components/ecahrts/myecharts'
+Vue.use(myecharts)
 // import './mock'
 Vue.config.productionTip = false
 

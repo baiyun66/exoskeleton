@@ -4,6 +4,7 @@ import Msite from '../pages/Msite/Msite'
 import patient_info from '../pages/Patient/patient_info'
 import patients_list from '../pages/Patient/patients_list'
 import eegAssistant from '../pages/eegAssistant/eegAssistant'
+import ExoskeletonControl from '../pages/ExoskeletonControl/ExoskeletonControl'
 import Vuelidate from 'vuelidate'
 
 
@@ -31,6 +32,9 @@ export default new VueRouter({
     },{
       path: '/eeg_assistant',
       component: eegAssistant
+    },{
+      path: '/ExoskeletonControl',
+      component: ExoskeletonControl
     }
   ]
 })
